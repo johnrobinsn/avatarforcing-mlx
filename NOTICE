@@ -1,0 +1,78 @@
+avatarforcing-mlx
+Copyright (c) 2026 John Robinson
+
+This project is an adaptation of AvatarForcing and is licensed, like AvatarForcing,
+under the Creative Commons Attribution-NonCommercial 4.0 International License
+(CC BY-NC 4.0; full text in LICENSE, summary at
+https://creativecommons.org/licenses/by-nc/4.0/). Non-commercial use only.
+
+It is an independent port and is not affiliated with or endorsed by the authors of
+the works below.
+
+--------------------------------------------------------------------------------
+AvatarForcing
+--------------------------------------------------------------------------------
+"Avatar Forcing: Real-Time Interactive Head Avatar Generation for Natural Conversation"
+Taekyung Ki, Sangwon Jang, Jaehyeong Jo, Jaehong Yoon, Sung Ju Hwang. CVPR 2026.
+Code and checkpoints: https://github.com/TaekyungKi/AvatarForcing (CC BY-NC 4.0)
+This port was made against commit 507e3046ad539c938e0412ac7a74cf6e3ba2a61c.
+
+Changes made in this project (CC BY-NC 4.0 §3(a)(1)(B)):
+
+  - src/avatarforcing_mlx/flow_transformer.py, helpers.py — the flow transformer
+    (models/avatarforcing/flow_transformer.py) re-implemented in MLX: same module tree,
+    parameter names and math; RoPE via mx.fast.rope; KV-cache updates by rebinding
+    instead of in-place writes; conditioning modules kept in float32.
+  - src/avatarforcing_mlx/sampler.py — the sampling loop (AvatarForcing.sample /
+    solve_cfg / solve_closed / prepare_cfg_condition / update_kv_cache) re-implemented
+    in MLX; solve_closed's coefficients precomputed in float64 with numpy; the final
+    no-op denoising step (t = 0 -> 0) skipped; the user-conditioning CFG branch dropped
+    when it has no effect (no user inputs, or u_cfg = 0).
+  - src/avatarforcing_mlx/decoder_fast.py — runtime replacements (opt-in, via patch())
+    for ModulatedConv2d.forward, upfirdn2d and ToFlow.forward from
+    models/avatarforcing/styledecoder.py: algebraically identical rewrites for speed.
+  - src/avatarforcing_mlx/preprocess.py — the face-crop logic of inference.py
+    (DataProcessor.preprocess_face) and preprocess_user_video.py, on in-memory arrays.
+  - src/avatarforcing_mlx/weights.py — converts the published flow_transformer.pth to
+    MLX safetensors (key selection, mask buffers dropped, nn.MultiheadAttention's
+    packed projections split; values unchanged).
+  - src/avatarforcing_mlx/torch_models/ — PyTorch files vendored unmodified except
+    for import paths (see the header of each file):
+      models/__init__.py -> base.py, models/wav2vec2.py -> wav2vec2.py,
+      models/avatarforcing/{encoder,generator,styledecoder}.py -> avatarforcing/,
+      the AudioEncoder class of models/avatarforcing/AvatarForcing.py -> audio_encoder.py
+  - src/avatarforcing_mlx/configs/inference.yaml — vendored unmodified.
+
+--------------------------------------------------------------------------------
+Model weights
+--------------------------------------------------------------------------------
+This package does not include or redistribute model weights. `avatarforcing-mlx
+download` fetches them from where their authors publish them:
+
+  - flow_transformer.pth, motion_autoencoder.pth — AvatarForcing authors' Google Drive
+    (linked from https://github.com/TaekyungKi/AvatarForcing). The flow transformer is
+    converted locally to MLX format. The motion autoencoder is derived from FLOAT's
+    (below); use it under its authors' terms.
+  - facebook/wav2vec2-base-960h — https://huggingface.co/facebook/wav2vec2-base-960h
+    (Apache License 2.0), by Facebook AI Research: Baevski, Zhou, Mohamed, Auli,
+    "wav2vec 2.0", NeurIPS 2020.
+
+--------------------------------------------------------------------------------
+Works AvatarForcing builds on (credited by its authors)
+--------------------------------------------------------------------------------
+  - FLOAT: "Generative Motion Latent Flow Matching for Audio-driven Talking Portrait",
+    Taekyung Ki, Dongchan Min, Gyeongsu Chae, ICCV 2025 —
+    https://github.com/deepbrainai-research/float. Its code is CC BY-NC 4.0; its README
+    states the checkpoints are released under CC BY-NC-ND 4.0 for research use.
+    AvatarForcing's motion autoencoder (architecture and weights) derives from FLOAT's.
+  - LIA: "Latent Image Animator: Learning to Animate Images via Latent Space
+    Navigation", Yaohui Wang, Di Yang, Francois Bremond, Antitza Dantcheva, ICLR 2022 —
+    https://github.com/wyhsirius/LIA (CC BY-NC 4.0). The motion autoencoder
+    architecture (encoder / style decoder) originates here.
+  - Self-Forcing and Diffusion Forcing (training / sampling ideas, no code included).
+
+--------------------------------------------------------------------------------
+Dependencies
+--------------------------------------------------------------------------------
+MLX (Apple, MIT License), PyTorch (BSD-style), Hugging Face transformers 4.30.2
+(Apache 2.0), and the other packages listed in pyproject.toml, under their own licenses.

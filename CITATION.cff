@@ -1,0 +1,26 @@
+cff-version: 1.2.0
+message: "If you use this port, please cite the AvatarForcing paper (preferred citation)."
+title: "avatarforcing-mlx: AvatarForcing on Apple Silicon (MLX)"
+authors:
+  - family-names: Robinson
+    given-names: John
+license: CC-BY-NC-4.0
+repository-code: "https://github.com/johnrobinsn/avatarforcing-mlx"
+preferred-citation:
+  type: conference-paper
+  title: "Avatar Forcing: Real-Time Interactive Head Avatar Generation for Natural Conversation"
+  authors:
+    - family-names: Ki
+      given-names: Taekyung
+    - family-names: Jang
+      given-names: Sangwon
+    - family-names: Jo
+      given-names: Jaehyeong
+    - family-names: Yoon
+      given-names: Jaehong
+    - family-names: Hwang
+      given-names: Sung Ju
+  collection-title: "Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR)"
+  year: 2026
+  start: 18074
+  end: 18084
